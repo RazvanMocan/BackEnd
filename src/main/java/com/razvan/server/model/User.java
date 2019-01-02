@@ -1,25 +1,52 @@
 package com.razvan.server.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicUpdate;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import java.util.List;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Entity
+@DynamicUpdate
 public class User {
-    private String userName, password;
-    private boolean admin;
+    @Id
+    private String userName;
+    private  String password;
+
+    public String getUserName() {
+        return userName;
+    }
+
+    private boolean admin = false, isBanned = false;
+
+    @OneToMany(mappedBy = "uploader")
+    private List<Torrent> torrents;
+
+    @OneToMany(mappedBy = "reviewer")
+    private List<Rating> ratings;
 
     public User(String userName, String password) {
         this.userName = userName;
         this.password = password;
     }
-    public void login() throws SecurityException {
-//        throw new SecurityException("Login failed. Wrong username or password ");
+
+
+    public boolean login(String pass) {
+        return password.equals(pass);
     }
 
-    public void siggup() {
-
+    public void setBanned(boolean banned) {
+        isBanned = banned;
     }
 
-    public void rateFile() {
-
+    public boolean isAdmin() {
+        return admin;
     }
 }
