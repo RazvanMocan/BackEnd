@@ -31,6 +31,7 @@ public class RatingController {
     public void rate(@RequestParam(value = "id") long id,
                      @RequestParam(value = "mark") int mark) {
         User u = UserController.getUser();
+        System.out.println(id + " " + mark);
         Torrent t = torrentRepository.getTorrentById(id);
         Rating r = new Rating(mark, u, t);
         repository.save(r);

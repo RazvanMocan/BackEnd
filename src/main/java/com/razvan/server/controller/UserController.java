@@ -5,6 +5,7 @@ import com.razvan.server.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+
 @RestController
 @RequestMapping("/api")
 public class UserController {
@@ -40,18 +41,17 @@ public class UserController {
             @RequestParam(value="password") String pass ) {
 
         User user = repository.getUserByUserName(uname);
-        if (user == null)
+        if (user != null)
             return null;
 
-        UserController.user = user;
         user = new User(uname, pass);
-        repository.save(user);
+        UserController.user = repository.save(user);
         return user;
     }
 
-    @PostMapping("user/ban/{userID}")
-    public void signup(
-            @PathVariable("userID") String uname) {
+    @PostMapping("user/ban")
+    public void ban(
+            @RequestParam("userID") String uname) {
 
         if (loggedin() && user.isAdmin()) {
             User banned = repository.getUserByUserName(uname);
@@ -64,7 +64,8 @@ public class UserController {
         return user != null;
     }
 
-    protected static User getUser() {
+    @GetMapping("/loggedin")
+    static User getUser() {
         return user;
     }
 }

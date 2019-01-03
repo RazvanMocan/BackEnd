@@ -25,7 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 
 @RestController
-@RequestMapping("files")
+@RequestMapping("/")
 public class FileUploadController {
     private TorrentRepository repository;
 
@@ -110,19 +110,30 @@ public class FileUploadController {
         User u = UserController.getUser();
         if(u == null)
             return false;
+        Path currentRelativePath = Paths.get("");
+        File path = new File(currentRelativePath.toAbsolutePath().toString() + "/files/" + u.getUserName());
+        Torrent t = new Torrent(file.getOriginalFilename(),path.getPath(),u);
+
+        t = repository.save(t);
+        File f = new File(t.getPath());
+        if(!f.getParentFile().exists() && !f.getParentFile().mkdirs())
+            return error(t);
+        System.out.println(t.getUploadTime());
+        System.out.println(f.getAbsolutePath());
+
         try {
-            Path currentRelativePath = Paths.get("");
-            File path = new File(currentRelativePath.toString() + "files" + u.getUserName());
-            if (!path.mkdirs())
-                return false;
-            Torrent t = new Torrent(file.getName(),path.getPath(),u);
-            File f = new File(t.getPath());
+            if (!f.createNewFile())
+                return error(t);
             Files.write(f.toPath(),file.getBytes());
-            repository.save(t);
             return true;
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
+            return error(t);
         }
+    }
+
+    private boolean error(Torrent t) {
+        repository.delete(t);
+        return false;
     }
 }
