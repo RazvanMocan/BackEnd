@@ -1,5 +1,6 @@
 package com.razvan.server.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,9 +27,11 @@ public class User {
 
     private boolean admin = false, isBanned = false;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "uploader")
     private List<Torrent> torrents;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "reviewer")
     private List<Rating> ratings;
 

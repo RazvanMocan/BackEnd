@@ -1,8 +1,7 @@
 package com.razvan.server.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -25,10 +24,13 @@ public class Torrent {
     @ManyToOne()
     private User uploader;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "file")
     private List<Rating> ratings;
 
     private LocalDateTime uploadTime;
+    @Transient
+    private float avg;
 
     public Torrent(String name, String path, User uploader) {
         this.name = name;
@@ -50,10 +52,10 @@ public class Torrent {
         return uploadTime;
     }
 
-    public float average() {
-        float avg = 0;
+    public void average() {
+        avg = 0;
         for (Rating rating : ratings)
             avg += rating.rating;
-        return avg / ratings.size();
+        avg /= ratings.size();
     }
 }

@@ -33,7 +33,11 @@ public class RatingController {
         User u = UserController.getUser();
         System.out.println(id + " " + mark);
         Torrent t = torrentRepository.getTorrentById(id);
-        Rating r = new Rating(mark, u, t);
+        Rating r = repository.getRatingByFileAndReviewer(t,u);
+        if(r == null)
+            r = new Rating(mark, u, t);
+        else
+            r.setRating(mark);
         repository.save(r);
     }
 }

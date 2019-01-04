@@ -28,4 +28,8 @@ public class Rating {
         this.reviewer = reviewer;
         this.file = file;
     }
+
+    public void setRating(int rating) {
+        this.rating = rating;
+    }
 }

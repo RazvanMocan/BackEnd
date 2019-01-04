@@ -3,20 +3,22 @@ package com.razvan.server.controller;
 import com.razvan.server.model.Torrent;
 import com.razvan.server.model.User;
 import com.razvan.server.repositories.TorrentRepository;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
+import sun.nio.ch.IOUtil;
 
 import javax.servlet.MultipartConfigElement;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -45,9 +47,16 @@ public class FileUploadController {
         return factory.createMultipartConfig();
     }
 
+    private List<Torrent> update(List<Torrent> torrentList) {
+        for (Torrent torrent : torrentList) {
+            torrent.average();
+        }
+        return torrentList;
+    }
+
     @GetMapping("/latest")
     public List<Torrent> getLatest() {
-        return repository.findFirst3ByOrderByUploadTimeDesc();
+        return update(repository.findFirst3ByOrderByUploadTimeDesc());
     }
 
     @GetMapping("/pages")
@@ -68,13 +77,13 @@ public class FileUploadController {
                 it.next();
             page--;
         }
-        return torrents;
+        return update(torrents);
     }
 
     @GetMapping("/byname")
     public List<Torrent> byName(@RequestParam(value = "name") String name,
                                 @RequestParam(value = "page") int page) {
-        return repository.getTorrentsByName(name).subList((page - 1) * 30, page * 30);
+        return update(repository.getTorrentsByName(name).subList((page - 1) * 30, page * 30));
     }
 
     @GetMapping("/byname/pages")
@@ -85,24 +94,27 @@ public class FileUploadController {
 
     @GetMapping("/details")
     public Torrent details(@RequestParam(value = "id") long id) {
-        return repository.getTorrentById(id);
-    }
-
-    @GetMapping("/details/rating")
-    public float avgRating(@RequestParam(value = "id") long id) {
-        return repository.getTorrentById(id).average();
+        Torrent torrent = repository.getTorrentById(id);
+        torrent.average();
+        return torrent;
     }
 
     @GetMapping("/download")
     @ResponseBody
-    public ResponseEntity<Resource> serveFile(@RequestParam(value = "id") long id) {
-
+    public ResponseEntity<InputStreamResource> serveFile(@RequestParam(value = "id") long id) {
         Torrent t = repository.getTorrentById(id);
         t.updateDownloads();
         repository.save(t);
-        Resource file = new ClassPathResource(t.getPath());
+        File d = new File(t.getPath());
+        InputStreamResource resource = null;
+        try {
+            resource = new InputStreamResource(new FileInputStream(d));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
-                "attachment; filename=\"" + file.getFilename() + "\"").body(file);
+                "attachment; filename=\"" + d.getName() + "\"").body(resource);
     }
 
     @PostMapping("/")
@@ -122,7 +134,7 @@ public class FileUploadController {
         System.out.println(f.getAbsolutePath());
 
         try {
-            if (!f.createNewFile())
+            if (!f.exists() && !f.createNewFile())
                 return error(t);
             Files.write(f.toPath(),file.getBytes());
             return true;
