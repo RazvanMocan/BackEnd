@@ -31,6 +31,8 @@ public class RatingController {
     public void rate(@RequestParam(value = "id") long id,
                      @RequestParam(value = "mark") int mark) {
         User u = UserController.getUser();
+        if (u.isBanned())
+            return;
         System.out.println(id + " " + mark);
         Torrent t = torrentRepository.getTorrentById(id);
         Rating r = repository.getRatingByFileAndReviewer(t,u);

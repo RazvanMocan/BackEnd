@@ -23,7 +23,11 @@ public class Torrent {
 
     private String path;
     @ManyToOne()
-    private User uploader;
+    @JsonIgnore
+    private User uploade;
+
+    @Transient
+    private String uploader;
 
     @JsonIgnore
     @OneToMany(mappedBy = "file")
@@ -36,7 +40,7 @@ public class Torrent {
     public Torrent(String name, String path, User uploader) {
         this.name = name;
         this.path = path;
-        this.uploader = uploader;
+        this.uploade = uploader;
         downloads = 0;
         uploadTime = LocalDateTime.now();
     }
@@ -54,6 +58,7 @@ public class Torrent {
     }
 
     public void average() {
+        this.uploader = this.uploade.getUserName();
         for (Rating rating1 : ratings)
             if (rating1.checkUser(UserController.getUser())) {
                 rating = rating1.getRating();

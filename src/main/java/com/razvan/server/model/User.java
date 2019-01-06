@@ -19,6 +19,12 @@ import java.util.List;
 public class User {
     @Id
     private String userName;
+
+    public boolean isBanned() {
+        return isBanned;
+    }
+
+    @JsonIgnore
     private  String password;
 
     public String getUserName() {
@@ -28,7 +34,7 @@ public class User {
     private boolean admin = false, isBanned = false;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "uploader")
+    @OneToMany(mappedBy = "uploade")
     private List<Torrent> torrents;
 
     public String getPassword() {

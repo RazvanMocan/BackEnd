@@ -5,6 +5,10 @@ import com.razvan.server.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/api")
@@ -22,21 +26,25 @@ public class UserController {
             @PathVariable("userID") String uname,
             @RequestParam(value="password") String pass) {
 
-        User user = repository.getUserByUserName(uname);
-                System.out.println(uname+" "+pass);
+        User user2 = repository.getUserByUserName(uname);
+        System.out.println(uname+" "+pass);
 
-        if (user == null)
+        if (user2 == null)
             return null;
 
-        if (!user.login(pass))
+        System.out.println(user2.getPassword());
+        System.out.println(user2.login(pass));
+        if (!user2.login(pass))
             return null;
-        UserController.user = user;
-        return user;
+        UserController.user = user2;
+        return user2;
     }
 
     @GetMapping("user/logout")
     public void logout() {
-        user = null;
+        UserController.user = null;
+        System.out.println("logout");
+        System.out.println(user == null);
     }
 
     @PostMapping("user/signup/{userID}")
@@ -49,17 +57,16 @@ public class UserController {
             return null;
 
         user = new User(uname, pass);
-        UserController.user = repository.save(user);
+        repository.save(user);
         return user;
     }
 
-    @PostMapping("user/ban")
-    public void ban(
-            @RequestParam("userID") String uname) {
-
+    @GetMapping("user/ban")
+    public void ban(@RequestParam("userID") String uname) {
+        System.out.println(uname);
         if (loggedin() && user.isAdmin()) {
             User banned = repository.getUserByUserName(uname);
-            banned.setBanned(true);
+            banned.setBanned(!banned.isBanned());
             repository.save(banned);
         }
     }
@@ -73,4 +80,18 @@ public class UserController {
         return user;
     }
 
+    @GetMapping("/all")
+    public List<User> getUsers() {
+        ArrayList<User> users = new ArrayList<>();
+        Iterable<User> iterable =  repository.findAll();
+        Iterator<User> it = iterable.iterator();
+        while (it.hasNext())
+            users.add(it.next());
+        return users;
+    }
+
+    @GetMapping("/banned")
+    public boolean isbanned() {
+        return user.isBanned();
+    }
 }

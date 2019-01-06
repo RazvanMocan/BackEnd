@@ -3,7 +3,6 @@ package com.razvan.server.controller;
 import com.razvan.server.model.Torrent;
 import com.razvan.server.model.User;
 import com.razvan.server.repositories.TorrentRepository;
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
@@ -20,7 +19,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -28,6 +26,7 @@ import java.util.List;
 @RequestMapping("/")
 public class FileUploadController {
     private TorrentRepository repository;
+    private final static int pg = 12;
 
     @Autowired
     public void setRepository(TorrentRepository repository) {
@@ -59,21 +58,25 @@ public class FileUploadController {
 
     @GetMapping("/pages")
     public long pages() {
-        return repository.count() / 30 + (repository.count() % 30) > 0 ? 1 : 0;
+        System.out.println(repository.count());
+        System.out.println(repository.count()/pg);
+        System.out.println((repository.count() % pg) > 0 ? 1 : 0);
+        System.out.println(repository.count() / pg + ((repository.count() % pg) > 0 ? 1 : 0));
+        return repository.count() / pg + ((repository.count() % pg) > 0 ? 1 : 0);
     }
 
     @GetMapping("/{page}")
     public List<Torrent> getpage(@PathVariable("page") int page) {
-        ArrayList<Torrent> torrents = new ArrayList<>(30);
+        ArrayList<Torrent> torrents = new ArrayList<>(pg);
         Iterable<Torrent> iterable = repository.findAll();
         Iterator<Torrent> it = iterable.iterator();
 //        page++;
-        page *= 30;
+        page *= pg;
         while (it.hasNext() && page > 0) {
-            if(page <= 30)
+            if(page <= pg)
                 torrents.add(it.next());
             else
-                System.out.println(it.next());
+                it.next();
             page--;
         }
         return update(torrents);
@@ -84,16 +87,16 @@ public class FileUploadController {
     public List<Torrent> byName(@RequestParam(value = "name") String name,
                                 @RequestParam(value = "page") int page) {
         int count = repository.countTorrentByName(name);
-        if(page * 30 < count)
-            count = page * 30;
+        if(page * pg < count)
+            count = page * pg;
 
-        return update(repository.getTorrentsByName(name).subList((page - 1) * 30, count));
+        return update(repository.getTorrentsByName(name).subList((page - 1) * pg, count));
     }
 
     @GetMapping("/byname/pages")
     public int byNamePages(@RequestParam(value = "name") String name) {
         int count = repository.countTorrentByName(name);
-        return count / 30 + count % 30 > 0 ? 1 : 0;
+        return count / pg + count % pg > 0 ? 1 : 0;
     }
 
     @GetMapping("/details")
@@ -106,6 +109,8 @@ public class FileUploadController {
     @GetMapping("/download")
     @ResponseBody
     public ResponseEntity<InputStreamResource> serveFile(@RequestParam(value = "id") long id) {
+        if (UserController.getUser().isBanned())
+            return null;
         Torrent t = repository.getTorrentById(id);
         t.updateDownloads();
         repository.save(t);
@@ -124,7 +129,7 @@ public class FileUploadController {
     @PostMapping("/")
     public boolean handleFileUpload(@RequestParam(name = "file") MultipartFile file) {
         User u = UserController.getUser();
-        if(u == null)
+        if(u == null || u.isBanned())
             return false;
         Path currentRelativePath = Paths.get("");
         File path = new File(currentRelativePath.toAbsolutePath().toString() + "/files/" + u.getUserName());
