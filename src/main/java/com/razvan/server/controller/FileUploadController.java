@@ -3,19 +3,16 @@ package com.razvan.server.controller;
 import com.razvan.server.model.Torrent;
 import com.razvan.server.model.User;
 import com.razvan.server.repositories.TorrentRepository;
-import org.apache.tomcat.util.http.fileupload.IOUtils;
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
-import sun.nio.ch.IOUtil;
 
 import javax.servlet.MultipartConfigElement;
 import java.io.*;
@@ -23,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -67,23 +65,29 @@ public class FileUploadController {
     @GetMapping("/{page}")
     public List<Torrent> getpage(@PathVariable("page") int page) {
         ArrayList<Torrent> torrents = new ArrayList<>(30);
-        Iterator<Torrent> it = repository.findAll().iterator();
-        page++;
+        Iterable<Torrent> iterable = repository.findAll();
+        Iterator<Torrent> it = iterable.iterator();
+//        page++;
         page *= 30;
         while (it.hasNext() && page > 0) {
             if(page <= 30)
                 torrents.add(it.next());
             else
-                it.next();
+                System.out.println(it.next());
             page--;
         }
         return update(torrents);
+
     }
 
     @GetMapping("/byname")
     public List<Torrent> byName(@RequestParam(value = "name") String name,
                                 @RequestParam(value = "page") int page) {
-        return update(repository.getTorrentsByName(name).subList((page - 1) * 30, page * 30));
+        int count = repository.countTorrentByName(name);
+        if(page * 30 < count)
+            count = page * 30;
+
+        return update(repository.getTorrentsByName(name).subList((page - 1) * 30, count));
     }
 
     @GetMapping("/byname/pages")

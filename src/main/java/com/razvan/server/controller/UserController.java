@@ -25,8 +25,12 @@ public class UserController {
         User user = repository.getUserByUserName(uname);
                 System.out.println(uname+" "+pass);
 
-        if (user.login(pass))
-            UserController.user = user;
+        if (user == null)
+            return null;
+
+        if (!user.login(pass))
+            return null;
+        UserController.user = user;
         return user;
     }
 
@@ -65,7 +69,8 @@ public class UserController {
     }
 
     @GetMapping("/loggedin")
-    static User getUser() {
+    public static User getUser() {
         return user;
     }
+
 }

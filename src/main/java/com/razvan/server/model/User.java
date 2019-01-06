@@ -31,6 +31,10 @@ public class User {
     @OneToMany(mappedBy = "uploader")
     private List<Torrent> torrents;
 
+    public String getPassword() {
+        return password;
+    }
+
     @JsonIgnore
     @OneToMany(mappedBy = "reviewer")
     private List<Rating> ratings;

@@ -1,6 +1,7 @@
 package com.razvan.server.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.razvan.server.controller.UserController;
 import lombok.*;
 
 import javax.persistence.*;
@@ -30,7 +31,7 @@ public class Torrent {
 
     private LocalDateTime uploadTime;
     @Transient
-    private float avg;
+    private float rating;
 
     public Torrent(String name, String path, User uploader) {
         this.name = name;
@@ -53,9 +54,15 @@ public class Torrent {
     }
 
     public void average() {
-        avg = 0;
+        for (Rating rating1 : ratings)
+            if (rating1.checkUser(UserController.getUser())) {
+                rating = rating1.getRating();
+                return;
+            }
+
+        rating = 0;
         for (Rating rating : ratings)
-            avg += rating.rating;
-        avg /= ratings.size();
+            this.rating += rating.getRating();
+        rating /= ratings.size();
     }
 }

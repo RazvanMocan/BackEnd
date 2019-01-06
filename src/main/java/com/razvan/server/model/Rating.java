@@ -15,7 +15,7 @@ public class Rating {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    int rating;
+    private int rating;
 
     @ManyToOne
     private User reviewer;
@@ -29,7 +29,15 @@ public class Rating {
         this.file = file;
     }
 
+    public int getRating() {
+        return rating;
+    }
+
     public void setRating(int rating) {
         this.rating = rating;
+    }
+
+    public boolean checkUser(User u) {
+        return reviewer.getUserName().equals(u.getUserName());
     }
 }
