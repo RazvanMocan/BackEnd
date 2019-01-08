@@ -13,7 +13,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api")
 public class UserController {
-    private static User user;
+    private User user;
+    private static User user2;
     private UserRepository repository;
 
     @Autowired
@@ -36,13 +37,15 @@ public class UserController {
         System.out.println(user2.login(pass));
         if (!user2.login(pass))
             return null;
-        UserController.user = user2;
+        this.user = user2;
+        UserController.user2 = user2;
         return user2;
     }
 
     @GetMapping("user/logout")
     public void logout() {
-        UserController.user = null;
+        this.user = null;
+        UserController.user2 = null;
         System.out.println("logout");
         System.out.println(user == null);
     }
@@ -71,13 +74,13 @@ public class UserController {
         }
     }
 
-    private static boolean loggedin() {
+    private boolean loggedin() {
         return user != null;
     }
 
     @GetMapping("/loggedin")
     public static User getUser() {
-        return user;
+        return UserController.user2;
     }
 
     @GetMapping("/all")
