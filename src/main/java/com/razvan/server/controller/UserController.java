@@ -95,6 +95,8 @@ public class UserController {
 
     @GetMapping("/banned")
     public boolean isbanned() {
+        if (user == null)
+            return false;
         return user.isBanned();
     }
 }
