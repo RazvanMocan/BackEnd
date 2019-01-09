@@ -29,6 +29,10 @@ public class Torrent {
     @Transient
     private String uploader;
 
+    public String getName() {
+        return name;
+    }
+
     @JsonIgnore
     @OneToMany(mappedBy = "file")
     private List<Rating> ratings;

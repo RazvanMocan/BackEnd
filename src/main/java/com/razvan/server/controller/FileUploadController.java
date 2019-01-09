@@ -65,6 +65,16 @@ public class FileUploadController {
         return repository.count() / pg + ((repository.count() % pg) > 0 ? 1 : 0);
     }
 
+    @GetMapping("/filenames")
+    public List<String> getNames() {
+        ArrayList<String> strings = new ArrayList<>();
+        Iterable<Torrent> iterable =  repository.findAll();
+        Iterator<Torrent> it = iterable.iterator();
+        while (it.hasNext())
+            strings.add(it.next().getName());
+        return strings;
+    }
+
     @GetMapping("/{page}")
     public List<Torrent> getpage(@PathVariable("page") int page) {
         ArrayList<Torrent> torrents = new ArrayList<>(pg);
