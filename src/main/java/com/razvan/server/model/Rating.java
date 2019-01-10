@@ -38,6 +38,8 @@ public class Rating {
     }
 
     public boolean checkUser(User u) {
+        if(u == null)
+            return false;
         return reviewer.getUserName().equals(u.getUserName());
     }
 }
